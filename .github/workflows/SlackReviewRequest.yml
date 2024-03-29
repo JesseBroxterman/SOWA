@@ -18,13 +18,11 @@ jobs:
        run: |
          echo "${{ env.userID }}"
 
-     - uses: actions/checkout@v3
-         
-     - name: Parse JSON for Channel ID
+     - name: Download slack-channels.json with curl
        run: |
+         curl -o slack-channels.json https://sn01genstorage.blob.core.windows.net/app-resources/slack-channels.json
          channel=$(jq -r '."${{ env.userID }}"' ./slack-channels.json)
          echo "channelID=$channel"  >> $GITHUB_ENV
-
          
      - name: Check Channel ID
        run: |
