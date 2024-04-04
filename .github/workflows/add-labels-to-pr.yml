@@ -48,13 +48,13 @@ jobs:
 
 
       - name: Download jira-issue-types.json with curl
-        if: ${{ env.ISSUE_TYPE }} != 'Subtask'
+        if: ${{ env.ISSUE_TYPE != 'Subtask' }}
         run: |
           curl -o jira-issue-types.json https://sn01genstorage.blob.core.windows.net/app-resources/jira-issue-types.json
           echo label=$(jq -r '."${{ env.ISSUE_TYPE }}"' ./jira-issue-types.json) >> $GITHUB_ENV
           
       - name: Add labels
-        if: ${{ env.ISSUE_TYPE }} != 'Subtask'
+        if: ${{ env.ISSUE_TYPE != 'Subtask' }}
         uses: actions-ecosystem/action-add-labels@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
