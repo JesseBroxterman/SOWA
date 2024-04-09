@@ -34,13 +34,6 @@ jobs:
         uses: frieder/jira-issue-info@v1
         with:
           issue: ${{ steps.get-issue-key.outputs.issue }}
-
-      - name: Transition issue
-        if: ${{fromJSON(steps.issue.outputs.json).fields.status.name == "In Progress"))
-        uses: atlassian/gajira-transition@master
-        with:
-          issue: ${{ steps.get-issue-key.outputs.issue }}
-          transition: "Done"
         
       - name: Get Set Inputs
         run: |
