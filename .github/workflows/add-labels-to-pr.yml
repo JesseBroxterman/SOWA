@@ -53,7 +53,7 @@ jobs:
           curl -o jira-issue-types.json https://sn01genstorage.blob.core.windows.net/app-resources/jira-issue-types.json
 
       - name: If Issue Is a Subtask Get Parent Issue
-        if: ${{ fromJSON(steps.issue.outputs.json).fields.issuetype.name == 'Sub-task' }}
+        if: ${{ fromJSON(steps.issue.outputs.json).fields.issuetype.name == 'Subtask' }}
         id: parent_issue
         uses: frieder/jira-issue-info@v1
         with:
@@ -61,7 +61,7 @@ jobs:
 
       - name: If Issue Is a Subtask and All Other Subtasks Are Done, Set "Issue Type" to Parent For Correct Label
         if: |
-          fromJSON(steps.issue.outputs.json).fields.issuetype.name == 'Sub-task' &&
+          fromJSON(steps.issue.outputs.json).fields.issuetype.name == 'Subtask' &&
           !contains(fromJSON(steps.parent_issue.outputs.json).fields.subtasks.*.fields.status.name, 'To Do') &&
           !contains(fromJSON(steps.parent_issue.outputs.json).fields.subtasks.*.fields.status.name, 'In Progress') &&
           !contains(fromJSON(steps.parent_issue.outputs.json).fields.subtasks.*.fields.status.name, 'In Code Review')
