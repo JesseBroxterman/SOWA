@@ -27,8 +27,7 @@ jobs:
         id: get-issue-key
         uses: atlassian/gajira-find-issue-key@v3
         with:
-          string: FLEX-2
-          # string: ${{ github.event.pull_request.head.ref }}
+          string: ${{ github.event.pull_request.head.ref }}
 
       - name: Get Issue Properties
         id: issue
