@@ -2,7 +2,7 @@ name: Add Labels From Issue to PR
 
 on:
   pull_request:
-    types: [opened]
+    types: [opened, reopened]
 
 env:
   NEEDS_LABEL: true
