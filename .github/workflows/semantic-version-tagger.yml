@@ -1,6 +1,5 @@
 name: Increment semantic version
 on:
-  workflow_dispatch:
   pull_request:
     types:
       - closed  
