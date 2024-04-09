@@ -65,7 +65,7 @@ jobs:
       
       - name: Increment Version
         id: increment-version
-        uses: JesseBroxterman/semantic-version-increment@v2.0.6
+        uses: JesseBroxterman/semantic-version-increment@v2.0.10
         with:
           current_version: ${{ env.CURRENT_VERSION }}
           issue_type: ${{ env.ISSUE_TYPE }}
