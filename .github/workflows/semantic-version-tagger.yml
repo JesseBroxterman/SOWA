@@ -1,8 +1,10 @@
 name: Increment semantic version
 on:
+  workflow_dispatch:
   pull_request:
     types:
       - closed  
+
 jobs:
   increment-version:
     if: github.event.pull_request.merged == true
