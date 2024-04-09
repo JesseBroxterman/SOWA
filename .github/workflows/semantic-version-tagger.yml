@@ -29,17 +29,18 @@ jobs:
           string: FLEX-2
           # string: ${{ github.event.pull_request.head.ref }}
 
-      - name: Transition issue
-        uses: atlassian/gajira-transition@master
-        with:
-          issue: ${{ steps.get-issue-key.outputs.issue }}
-          transition: "Done"
-
       - name: Get Issue Properties
         id: issue
         uses: frieder/jira-issue-info@v1
         with:
           issue: ${{ steps.get-issue-key.outputs.issue }}
+
+      - name: Transition issue
+        if: ${{fromJSON(steps.issue.outputs.json).fields.status.name == "In Progress"))
+        uses: atlassian/gajira-transition@master
+        with:
+          issue: ${{ steps.get-issue-key.outputs.issue }}
+          transition: "Done"
         
       - name: Get Set Inputs
         run: |
@@ -53,13 +54,13 @@ jobs:
         with:
           issue: ${{ fromJSON(steps.issue.outputs.json).fields.parent.key }}
 
-      - name: If All Other Subtasks Are Done
+      - name: If All Other Subtasks Are Done, Set "Issue Type" to Parent For Correct Version Increment
         if: |
           fromJSON(steps.issue.outputs.json).fields.issuetype.name == 'Subtask' &&
           !contains(fromJSON(steps.parent_issue.outputs.json).fields.subtasks.*.fields.status.name, 'To Do') &&
           !contains(fromJSON(steps.parent_issue.outputs.json).fields.subtasks.*.fields.status.name, 'In Progress') &&
           !contains(fromJSON(steps.parent_issue.outputs.json).fields.subtasks.*.fields.status.name, 'In Code Review')
-        run: echo "ISSUE_TYPE=Story" >> "$GITHUB_ENV"
+        run: echo "ISSUE_TYPE=${{fromJSON(steps.parent_issue.outputs.json).fields.issuetype.name}}" >> "$GITHUB_ENV"
         
       
       - name: Increment Version
@@ -79,15 +80,3 @@ jobs:
               ref: 'refs/tags/${{ steps.increment-version.outputs.new_version }}',
               sha: context.sha
             })  
-
-      - name: Set repository variable using REST API
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          curl -L \
-            -X PATCH \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer $GH_TOKEN" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            https://api.github.com/repos/${{ github.repository }}/actions/variables/DEV_VERSION \
-            -d '{"name":"DEV_VERSION","value":"${{ steps.increment-version.outputs.new_version }}"}'
