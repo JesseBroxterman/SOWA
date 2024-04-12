@@ -38,7 +38,9 @@ jobs:
         id: current_release
         run: echo "tagName=${{ fromJson(steps.get_latest_releases.outputs.data).repository.releases.nodes[0].tagName }}" >> $GITHUB_OUTPUT        
 
-      - uses: actions/checkout@v3
+      - run: echo "previous tag =${{ steps.previous_release.outputs.tagName }}"
+
+      - uses: actions/checkout@v4
 
       - uses: dorny/paths-filter@v2
         id: changes
