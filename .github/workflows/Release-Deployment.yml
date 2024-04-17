@@ -81,13 +81,13 @@ jobs:
       - name: Convert dorny outputs to environment variables
         if: ${{ env.DEPLOY_ALL != 'true' }}
         run: |
-          if  [ ${{ steps.changes.outputs.Shared }} == 'true']; then
+          if  [ ${{ steps.changes.outputs.Shared }} == true]; then
             echo "DEPLOY_ALL=true" >> $GITHUB_ENV
           fi
-          if  [ ${{ steps.changes.outputs.Internal }} == 'true']; then
+          if  [ ${{ steps.changes.outputs.Internal }} == true]; then
             echo "DEPLOY_INTERNAL=true" >> $GITHUB_ENV
           fi
-          if  [ ${{ steps.changes.outputs.External }} == 'true']; then
+          if  [ ${{ steps.changes.outputs.External }} == true]; then
             echo "DEPLOY_EXTERNAL=true" >> $GITHUB_ENV
           fi         
 
