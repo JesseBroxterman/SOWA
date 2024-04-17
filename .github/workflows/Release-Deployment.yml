@@ -5,6 +5,11 @@ on:
      types: [created]
    workflow_dispatch:
 
+env:
+  DEPLOY_ALL: false
+  DEPLOY_INTERNAL: false
+  DEPLOY_EXTERNAL: false
+
 jobs:
   restore-build-publish:
     runs-on: ubuntu-latest
@@ -38,11 +43,16 @@ jobs:
         id: current_release
         run: echo "tagName=${{ fromJson(steps.get_latest_releases.outputs.data).repository.releases.nodes[0].tagName }}" >> $GITHUB_OUTPUT        
 
-      - run: echo "previous tag =${{ steps.previous_release.outputs.tagName }}"
+      - run: |
+          echo "previous tag =${{ steps.previous_release.outputs.tagName }}"
+          if  [ -z ${{ steps.previous_release.outputs.tagName }}]; then
+            echo "DEPLOY_ALL=true" >> $GITHUB_ENV
+          fi
 
       - uses: actions/checkout@v4
 
       - uses: dorny/paths-filter@v2
+        if: ${{ env.DEPLOY_ALL != 'true' }}
         id: changes
         with:
           base: ${{ steps.previous_release.outputs.tagName }}
@@ -68,20 +78,33 @@ jobs:
             Internal:
             - '${{ vars.SOLUTION_NAME }}/${{ vars.INTERNAL_WEB_PROJECT }}/**'
 
-      #- name: Publish Internal
-      #  if: (steps.changes.outputs.Internal == 'true' || steps.changes.outputs.Shared == 'true')
-      #  run: dotnet publish ./${{ vars.SOLUTION_NAME }}/${{ vars.INTERNAL_WEB_PROJECT }}/${{ vars.INTERNAL_WEB_PROJECT }}.csproj --configuration Release
+      - name: Convert dorny outputs to environment variables
+        if: ${{ env.DEPLOY_ALL != 'true' }}
+        run: |
+          if  [ steps.changes.outputs.Shared == 'true']; then
+            echo "DEPLOY_ALL=true" >> $GITHUB_ENV
+          fi
+          if  [ steps.changes.outputs.Internal == 'true']; then
+            echo "DEPLOY_INTERNAL=true" >> $GITHUB_ENV
+          fi
+          if  [ steps.changes.outputs.External == 'true']; then
+            echo "DEPLOY_EXTERNAL=true" >> $GITHUB_ENV
+          fi         
+
+      - name: Publish Internal
+        if: (env.DEPLOY_INTERNAL == 'true' || env.DEPLOY_ALL == 'true')
+        run: dotnet publish ./${{ vars.SOLUTION_NAME }}/${{ vars.INTERNAL_WEB_PROJECT }}/${{ vars.INTERNAL_WEB_PROJECT }}.csproj --configuration Release
 
       #- name: Upload Internal Artifact
-      #  if: (steps.changes.outputs.Internal == 'true' || steps.changes.outputs.Shared == 'true')
+      #  if: (env.DEPLOY_INTERNAL == 'true' || env.DEPLOY_ALL == 'true')
       #  uses: actions/upload-artifact@v2
       #  with:
-      #    name: ${{ vars.SOLUTION_NAME }}-Internal-${{ steps.current_release.outputs.tagName }}
+      #    name: ${{ vars.SOLUTION_NAME }}-Internal
       #    path: ./${{ vars.SOLUTION_NAME }}/${{ vars.INTERNAL_WEB_PROJECT }}/bin/Release/net6.0
 
       #- name: Trigger Azure UAT Internal Deployment Pipeline
       #  uses: azure/pipelines@v1
-      #  if: (steps.changes.outputs.Internal == 'true' || steps.changes.outputs.Shared == 'true')      
+      #  if: (env.DEPLOY_INTERNAL == 'true' || env.DEPLOY_ALL == 'true')      
       #  with:
       #    azure-devops-project-url: ${{ vars.AZURE_DEVOPS_PROJECT_URL }}
       #    azure-pipeline-name: Internal-UAT-Deploy
@@ -89,27 +112,27 @@ jobs:
 
       #- name: Trigger Azure Prod Internal Deployment Pipeline
       #  uses: azure/pipelines@v1
-      #  if: (steps.changes.outputs.Internal == 'true' || steps.changes.outputs.Shared == 'true')      
+      #  if: (env.DEPLOY_INTERNAL == 'true' || env.DEPLOY_ALL == 'true')      
       #  with:
       #    azure-devops-project-url: ${{ vars.AZURE_DEVOPS_PROJECT_URL }}
       #    azure-pipeline-name: Internal-Prod-Deploy
       #    azure-devops-token: ${{ secrets.AZURE_DEVOPS_TOKEN }}
 
 
-      #- name: Publish External
-      #  if: (steps.changes.outputs.External == 'true' || steps.changes.outputs.Shared == 'true')
-      #  run: dotnet publish ./${{ vars.SOLUTION_NAME }}/${{ vars.EXTERNAL_WEB_PROJECT }}/${{ vars.EXTERNAL_WEB_PROJECT }}.csproj --configuration Release
+      - name: Publish External
+        if: (env.DEPLOY_EXTERNAL == 'true' || env.DEPLOY_ALL == 'true')
+        run: dotnet publish ./${{ vars.SOLUTION_NAME }}/${{ vars.EXTERNAL_WEB_PROJECT }}/${{ vars.EXTERNAL_WEB_PROJECT }}.csproj --configuration Release
 
       #- name: Upload External Artifact
-      #  if: (steps.changes.outputs.External == 'true' || steps.changes.outputs.Shared == 'true')
+      #  if: (env.DEPLOY_EXTERNAL == 'true' || env.DEPLOY_ALL == 'true')
       #  uses: actions/upload-artifact@v2
       #  with:
-      #    name: ${{ vars.SOLUTION_NAME }}-External-${{ steps.current_release.outputs.tagName }}
+      #    name: ${{ vars.SOLUTION_NAME }}-External
       #    path: ./${{ vars.SOLUTION_NAME }}/${{ vars.EXTERNAL_WEB_PROJECT }}/bin/Release/net6.0
 
       #- name: Trigger Azure UAT External Deployment Pipeline
       #  uses: azure/pipelines@v1
-      #  if: (steps.changes.outputs.External == 'true' || steps.changes.outputs.Shared == 'true')      
+      #  if: (env.DEPLOY_EXTERNAL == 'true' || env.DEPLOY_ALL == 'true')      
       #  with:
       #    azure-devops-project-url: ${{ vars.AZURE_DEVOPS_PROJECT_URL }}
       #    azure-pipeline-name: External-UAT-Deploy
@@ -117,7 +140,7 @@ jobs:
 
      # - name: Trigger Azure UAT External Deployment Pipeline
      #   uses: azure/pipelines@v1
-     #   if: (steps.changes.outputs.External == 'true' || steps.changes.outputs.Shared == 'true')      
+     #   if: (env.DEPLOY_EXTERNAL == 'true' || env.DEPLOY_ALL == 'true')      
      #   with:
      #     azure-devops-project-url: ${{ vars.AZURE_DEVOPS_PROJECT_URL }}
      #     azure-pipeline-name: External-Prod-Deploy
