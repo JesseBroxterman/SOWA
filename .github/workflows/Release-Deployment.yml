@@ -82,18 +82,25 @@ jobs:
         shell: bash
         if: ${{ env.DEPLOY_ALL != 'true' }}
         run: |
-          if  [ '${{ steps.changes.outputs.Shared }}' == 'true']; then
+          echo "Testing first echo"
+          echo "DEPLOY_ALL =  ${{ env.DEPLOY_ALL }}"
+          echo "DEPLOY_INTERNAL =  ${{ env.DEPLOY_INTERNAL }}"
+          echo "DEPLOY_EXTERNAL =  ${{ env.DEPLOY_EXTERNAL }}"          
+          if  ['${{ steps.changes.outputs.Shared }}'=='true']; then
             echo "The Shared variable was true"
             echo "DEPLOY_ALL=true" >> $GITHUB_ENV
           fi
-          if  [ '${{ steps.changes.outputs.Internal }}' == 'true']; then
+          if  ['${{ steps.changes.outputs.Internal }}'=='true']; then
             echo "The Internal variable was true"          
             echo "DEPLOY_INTERNAL=true" >> $GITHUB_ENV
           fi
-          if  [ '${{ steps.changes.outputs.External }}' == 'true']; then
+          if  ['${{ steps.changes.outputs.External }}'=='true']; then
             echo "The External variable was true"          
             echo "DEPLOY_EXTERNAL=true" >> $GITHUB_ENV
-          fi         
+          fi
+
+          if ['true'=='true']; then
+            echo "True equals true worked"
 
       - name: Publish Internal
         if: (env.DEPLOY_INTERNAL == 'true' || env.DEPLOY_ALL == 'true')
