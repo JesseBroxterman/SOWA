@@ -79,7 +79,7 @@ jobs:
             - '${{ vars.SOLUTION_NAME }}/${{ vars.INTERNAL_WEB_PROJECT }}/**'
 
       - name: Convert dorny outputs to environment variables
-        script: bash
+        shell: bash
         if: ${{ env.DEPLOY_ALL != 'true' }}
         run: |
           if  [ '${{ steps.changes.outputs.Shared }}' == 'true']; then
