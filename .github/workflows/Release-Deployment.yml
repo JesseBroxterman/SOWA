@@ -101,6 +101,7 @@ jobs:
 
           if ['true'=='true']; then
             echo "True equals true worked"
+          fi
 
       - name: Publish Internal
         if: (env.DEPLOY_INTERNAL == 'true' || env.DEPLOY_ALL == 'true')
